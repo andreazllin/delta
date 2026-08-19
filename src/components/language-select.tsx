@@ -38,10 +38,10 @@ export function LanguageSelect({
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="outline" size="sm" aria-label="Syntax language">
+          <Button variant="outline" size="sm" aria-label="Language">
             <IconCode className="text-muted-foreground" />
             {getLanguage(resolvedLanguageId).label}
-            {isAuto && <span className="text-muted-foreground">· auto</span>}
+            {isAuto && <span className="text-muted-foreground">· automatic</span>}
             <IconChevronDown data-icon="inline-end" />
           </Button>
         }
@@ -53,9 +53,9 @@ export function LanguageSelect({
           value={value}
           onValueChange={(next: string) => onChange(next)}
         >
-          <DropdownMenuLabel>Syntax</DropdownMenuLabel>
+          <DropdownMenuLabel>Language</DropdownMenuLabel>
           <DropdownMenuRadioItem value={AUTO_LANGUAGE_ID}>
-            Auto-detect
+            Automatic
           </DropdownMenuRadioItem>
           <DropdownMenuSeparator />
           {LANGUAGES.map((language) => (

@@ -106,13 +106,13 @@ export function DiffToolbar({
               checked={settings.showBackgrounds}
               onCheckedChange={settings.setShowBackgrounds}
             >
-              Change backgrounds
+              Line highlights
             </DropdownMenuCheckboxItem>
             <DropdownMenuCheckboxItem
               checked={settings.collapseUnchanged}
               onCheckedChange={settings.setCollapseUnchanged}
             >
-              Collapse unchanged
+              Collapse unchanged lines
             </DropdownMenuCheckboxItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
@@ -122,10 +122,10 @@ export function DiffToolbar({
               settings.setDiffIndicators(value as DiffIndicators)
             }
           >
-            <DropdownMenuLabel>Change indicators</DropdownMenuLabel>
+            <DropdownMenuLabel>Diff markers</DropdownMenuLabel>
             <DropdownMenuRadioItem value="bars">Bars</DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="classic">
-              Classic (+/-)
+              Plus and minus
             </DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="none">None</DropdownMenuRadioItem>
           </DropdownMenuRadioGroup>

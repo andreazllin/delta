@@ -46,7 +46,7 @@ function ComparePage() {
             Compare two texts
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Paste anything into both panes, then compare them side by side.
+            Paste text into both panes. Then select Compare.
           </p>
         </div>
         <LanguageSelect

@@ -74,12 +74,12 @@ function DiffPage() {
             description="Both panes are empty."
           />
         ) : isDiffError(result) ? (
-          <EmptyState title="Could not build a diff" description={result.error} />
+          <EmptyState title="The app cannot build a diff" description={result.error} />
         ) : !result.hasChanges ? (
           <EmptyState
             icon
-            title="The two texts are identical"
-            description="No lines were added, removed, or changed."
+            title="The texts are identical"
+            description="Change one pane to see a diff."
           />
         ) : (
           <DiffView

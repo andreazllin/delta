@@ -104,7 +104,9 @@ export function computeDiff({
     };
   } catch (error) {
     return {
-      error: error instanceof Error ? error.message : 'Could not diff the two inputs.',
+      error: error instanceof Error
+          ? error.message
+          : 'The app cannot compare the two texts.',
     };
   }
 }
