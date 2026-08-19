@@ -1,4 +1,4 @@
-import { IconCheck, IconChevronDown, IconCode } from '@tabler/icons-react';
+import { IconChevronDown, IconCode } from '@tabler/icons-react';
 import { useState } from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import {
 } from '@/components/ui/popover';
 import { AUTO_LANGUAGE_ID, isAutoLanguage } from '@/lib/detect-language';
 import { getLanguage, LANGUAGES } from '@/lib/languages';
-import { cn } from '@/lib/utils';
 
 interface LanguageSelectProps {
   /** The stored selection, which may be `'auto'`. */
@@ -73,13 +72,10 @@ export function LanguageSelect({
             <CommandGroup>
               <CommandItem
                 value="automatic detect"
+                data-checked={isAuto}
                 onSelect={() => select(AUTO_LANGUAGE_ID)}
               >
                 Automatic
-                <IconCheck
-                  aria-hidden="true"
-                  className={cn('ml-auto', !isAuto && 'opacity-0')}
-                />
               </CommandItem>
             </CommandGroup>
             <CommandSeparator />
@@ -90,16 +86,10 @@ export function LanguageSelect({
                   // The extension is searchable too, so "yml" finds YAML and
                   // "py" finds Python. Neither appears in the label.
                   value={`${language.label} ${language.extension}`}
+                  data-checked={value === language.id}
                   onSelect={() => select(language.id)}
                 >
                   {language.label}
-                  <IconCheck
-                    aria-hidden="true"
-                    className={cn(
-                      'ml-auto',
-                      value !== language.id && 'opacity-0'
-                    )}
-                  />
                 </CommandItem>
               ))}
             </CommandGroup>
