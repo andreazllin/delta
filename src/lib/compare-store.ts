@@ -5,7 +5,7 @@ export interface ComparePair {
   right: string;
 }
 
-const STORAGE_KEY = 'diff:pair';
+const STORAGE_KEY = 'delta:pair';
 const EMPTY: ComparePair = { left: '', right: '' };
 
 function read(): ComparePair {

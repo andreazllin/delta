@@ -1,10 +1,17 @@
-import { IconEqual, IconPencil } from '@tabler/icons-react';
+import {
+  IconAlertTriangle,
+  IconClipboardText,
+  IconEqual,
+  IconPencil,
+  type Icon,
+} from '@tabler/icons-react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useMemo } from 'react';
 
 import { DiffStats } from '@/components/diff/diff-stats';
 import { DiffToolbar } from '@/components/diff/diff-toolbar';
 import { DiffView } from '@/components/diff/diff-view';
+import { IconStack } from '@/components/reui/icon-stack';
 import { Button } from '@/components/ui/button';
 import { useColorMode } from '@/lib/color-mode';
 import { useComparePair } from '@/lib/compare-store';
@@ -70,14 +77,20 @@ function DiffPage() {
       <div className="flex flex-col overflow-hidden rounded-lg border bg-card">
         {isEmpty ? (
           <EmptyState
+            icon={IconClipboardText}
             title="Nothing to compare"
             description="Both panes are empty."
           />
         ) : isDiffError(result) ? (
-          <EmptyState title="The app cannot build a diff" description={result.error} />
+          <EmptyState
+            icon={IconAlertTriangle}
+            tone="error"
+            title="The app cannot build a diff"
+            description={result.error}
+          />
         ) : !result.hasChanges ? (
           <EmptyState
-            icon
+            icon={IconEqual}
             title="The texts are identical"
             description="Change one pane to see a diff."
           />
@@ -94,17 +107,30 @@ function DiffPage() {
 }
 
 interface EmptyStateProps {
+  icon: Icon;
   title: string;
   description: string;
-  icon?: boolean;
+  /** `error` tints the stack, so a failure does not read as a normal state. */
+  tone?: 'default' | 'error';
 }
 
-function EmptyState({ title, description, icon = false }: EmptyStateProps) {
+function EmptyState({
+  icon: StateIcon,
+  title,
+  description,
+  tone = 'default',
+}: EmptyStateProps) {
   return (
-    <div className="flex min-h-64 flex-col items-center justify-center gap-2 bg-card p-12 text-center">
-      {icon && <IconEqual className="size-6 text-muted-foreground" />}
-      <p className="text-sm font-medium">{title}</p>
-      <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
+    <div className="flex min-h-72 flex-col items-center justify-center gap-5 bg-card p-12 text-center">
+      <IconStack className={tone === 'error' ? 'text-destructive' : undefined}>
+        <StateIcon className="size-5" />
+      </IconStack>
+      <div className="space-y-1.5">
+        <p className="text-sm font-medium">{title}</p>
+        <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+          {description}
+        </p>
+      </div>
     </div>
   );
 }

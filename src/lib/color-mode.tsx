@@ -37,7 +37,7 @@ const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 export function ColorModeProvider({ children }: { children: ReactNode }) {
   const [colorMode, setColorMode] = usePersistedState<ColorMode>(
-    'diff:color-mode',
+    'delta:color-mode',
     'system',
     isColorMode
   );

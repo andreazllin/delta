@@ -32,37 +32,37 @@ export interface DiffSettings {
 /** The viewer controls diffshub exposes, persisted so they outlive a reload. */
 export function useDiffSettings(): DiffSettings {
   const [diffStyle, setDiffStyle] = usePersistedState<DiffStyle>(
-    'diff:style',
+    'delta:style',
     'split',
     isOneOf(DIFF_STYLES)
   );
   const [overflow, setOverflow] = usePersistedState<Overflow>(
-    'diff:overflow',
+    'delta:overflow',
     'scroll',
     isOneOf(OVERFLOWS)
   );
   const [diffIndicators, setDiffIndicators] = usePersistedState<DiffIndicators>(
-    'diff:indicators',
+    'delta:indicators',
     'bars',
     isOneOf(DIFF_INDICATORS)
   );
   const [lineNumbers, setLineNumbers] = usePersistedState(
-    'diff:line-numbers',
+    'delta:line-numbers',
     true,
     isBoolean
   );
   const [showBackgrounds, setShowBackgrounds] = usePersistedState(
-    'diff:backgrounds',
+    'delta:backgrounds',
     true,
     isBoolean
   );
   const [collapseUnchanged, setCollapseUnchanged] = usePersistedState(
-    'diff:collapse-unchanged',
+    'delta:collapse-unchanged',
     false,
     isBoolean
   );
   const [languageId, setLanguageId] = usePersistedState<string>(
-    'diff:language',
+    'delta:language',
     AUTO_LANGUAGE_ID,
     isOneOf([AUTO_LANGUAGE_ID, ...LANGUAGE_IDS])
   );

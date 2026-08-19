@@ -1,4 +1,4 @@
-# diff · a no-bs text diff viewer
+# delta · a no-bs text diff viewer
 
 Paste two blocks of text and compare them. The result is a real diff: split or
 unified, syntax highlighted, with word-level highlights inside a changed line.
