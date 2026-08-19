@@ -2,18 +2,27 @@ import { parseDiffFromFile, type FileDiffMetadata } from '@pierre/diffs';
 
 import { getLanguage } from './languages';
 
-/**
- * Cheap FNV-1a hash. The cache key `@pierre/diffs` derives for highlight reuse
- * falls back to the filename, and both panes share one name here, so it has to
- * be content-derived or edited text would render against a stale cache entry.
- */
-function hashContents(contents: string): string {
-  let hash = 0x811c9dc5;
-  for (let index = 0; index < contents.length; index++) {
-    hash ^= contents.charCodeAt(index);
-    hash = Math.imul(hash, 0x01000193);
+/** Cheap FNV-1a hash. */
+function hash(value: string): string {
+  let result = 0x811c9dc5;
+  for (let index = 0; index < value.length; index++) {
+    result ^= value.charCodeAt(index);
+    result = Math.imul(result, 0x01000193);
   }
-  return (hash >>> 0).toString(36);
+  return (result >>> 0).toString(36);
+}
+
+/**
+ * The cache key `@pierre/diffs` reuses highlighted output under. It has to cover
+ * everything that changes the rendered result, and it falls back to the filename
+ * when absent — which both panes share here.
+ *
+ * Content, because editing text with the same key renders the stale entry.
+ * Language, because a live language switch is otherwise treated as the same file
+ * and the diff keeps its previous tokens and header.
+ */
+function cacheKeyFor(contents: string, languageId: string): string {
+  return `${hash(contents)}-${languageId}`;
 }
 
 export interface DiffResult {
@@ -27,6 +36,7 @@ export interface DiffResult {
 export interface ComputeDiffInput {
   left: string;
   right: string;
+  /** A concrete language id; `'auto'` must be resolved before calling. */
   languageId: string;
   /** Hide runs of unchanged lines behind hunk separators. */
   collapseUnchanged: boolean;
@@ -60,8 +70,18 @@ export function computeDiff({
 
   try {
     const fileDiff = parseDiffFromFile(
-      { name, contents: left, lang: language.id, cacheKey: hashContents(left) },
-      { name, contents: right, lang: language.id, cacheKey: hashContents(right) },
+      {
+        name,
+        contents: left,
+        lang: language.id,
+        cacheKey: cacheKeyFor(left, language.id),
+      },
+      {
+        name,
+        contents: right,
+        lang: language.id,
+        cacheKey: cacheKeyFor(right, language.id),
+      },
       {
         context: collapseUnchanged
           ? COLLAPSED_CONTEXT_LINES

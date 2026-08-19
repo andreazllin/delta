@@ -18,6 +18,7 @@ app diffs the two texts you type in.
 | Routing    | TanStack Router (file-based, `src/routes/`)                |
 | Styling    | Tailwind CSS v4                                           |
 | Components | shadcn `base-vega` style (Base UI) + ReUI registry         |
+| Inputs     | CodeMirror 6 via `@uiw/react-codemirror`                   |
 | Diff       | `@pierre/diffs` (`FileDiff` from its React entry)          |
 | Package    | pnpm                                                      |
 
@@ -28,17 +29,52 @@ pnpm install
 pnpm dev        # http://localhost:5173
 pnpm build      # typecheck, then production build
 pnpm typecheck
+pnpm test       # detection cases (vitest)
 ```
 
 ## Screens
 
-- `/` — two text panes side by side and a **Compare** button.
+- `/` — two CodeMirror panes side by side and a **Compare** button. Each pane
+  has line numbers, soft wrapping, and a capped height
+  (`min(28rem, 55vh)`) that it scrolls inside, so a long paste cannot push the
+  Compare button off screen.
 - `/compare` — the diff, with layout, wrapping, syntax, and display controls
   (line numbers, change backgrounds, collapse unchanged, change indicators).
+
+The syntax picker (`src/components/language-select.tsx`) appears on both
+screens and reads one persisted selection, so setting it next to the panes and
+setting it in the diff toolbar are the same act.
 
 The pair is held in a module store mirrored into `sessionStorage`, so
 `/compare` survives a reload. Viewer settings and the color mode persist in
 `localStorage`.
+
+## Language detection
+
+The language selection defaults to `auto`, so pasted code highlights on both
+screens without touching the picker, and either screen's picker can override
+it. `src/lib/detect-language.ts` holds an
+ordered set of signals (shebangs, `package main`, a successful `JSON.parse`, a
+TypeScript type annotation, and so on) and falls back to plain text rather than
+guessing wildly. It is a heuristic, not a parser; either picker always overrides it.
+
+The overlaps are the hard part, and they are covered by
+`src/lib/detect-language.test.ts`. YAML is the awkward one: a flow mapping
+(`env: { A: 1 }`) reads as a CSS rule and a leading `#` comment reads as a
+Markdown heading, so YAML is tested first, using a structural line-ratio check
+rather than a pattern. CSS in turn requires a semicolon-terminated declaration
+inside braces, which is what keeps flow mappings out of it.
+
+The detected language drives three things at once: Shiki highlighting in the
+diff, the CodeMirror grammar in the panes, and the extension on the synthetic
+filename in the diff header.
+
+CodeMirror grammars come from `@uiw/codemirror-extensions-langs`, one dependency
+covering every language in the picker. It is a ~1.1 MB chunk, so it is imported
+dynamically and only fetched once something other than plain text is in play —
+it never touches first paint. Swapping it for per-language
+`@codemirror/lang-*` imports would cut that to tens of kilobytes per language at
+the cost of about fifteen more dependencies.
 
 ## How the diff is computed
 

@@ -1,7 +1,8 @@
 import type { DiffIndicators } from '@pierre/diffs';
 
-import { isBoolean, isOneOf, usePersistedState } from './persisted-state';
+import { AUTO_LANGUAGE_ID } from './detect-language';
 import { LANGUAGE_IDS } from './languages';
+import { isBoolean, isOneOf, usePersistedState } from './persisted-state';
 
 export const DIFF_STYLES = ['split', 'unified'] as const;
 export type DiffStyle = (typeof DIFF_STYLES)[number];
@@ -62,8 +63,8 @@ export function useDiffSettings(): DiffSettings {
   );
   const [languageId, setLanguageId] = usePersistedState<string>(
     'diff:language',
-    'text',
-    isOneOf(LANGUAGE_IDS)
+    AUTO_LANGUAGE_ID,
+    isOneOf([AUTO_LANGUAGE_ID, ...LANGUAGE_IDS])
   );
 
   return {

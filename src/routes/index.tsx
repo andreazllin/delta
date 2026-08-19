@@ -1,11 +1,14 @@
 import { IconArrowRight } from '@tabler/icons-react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 
+import { LanguageSelect } from '@/components/language-select';
+import { TextEditor } from '@/components/text-editor';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { getComparePair, setComparePair } from '@/lib/compare-store';
+import { resolveLanguageId } from '@/lib/detect-language';
+import { useDiffSettings } from '@/lib/diff-settings';
 
 export const Route = createFileRoute('/')({
   component: ComparePage,
@@ -15,7 +18,15 @@ function ComparePage() {
   const initial = getComparePair();
   const [left, setLeft] = useState(initial.left);
   const [right, setRight] = useState(initial.right);
+  const { languageId, setLanguageId } = useDiffSettings();
   const navigate = useNavigate();
+
+  // The panes highlight with the same language the diff will use, so the two
+  // screens agree before the user ever reaches the diff.
+  const resolvedLanguageId = useMemo(
+    () => resolveLanguageId(languageId, right, left),
+    [languageId, left, right]
+  );
 
   const canCompare = left.length > 0 || right.length > 0;
 
@@ -28,27 +39,32 @@ function ComparePage() {
   };
 
   return (
-    <form
-      className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 md:px-6 md:py-10"
-      onSubmit={(event) => {
-        event.preventDefault();
-        compare();
-      }}
-    >
-      <div>
-        <h1 className="text-xl font-semibold tracking-tight">Compare two texts</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Paste anything into both panes, then compare them side by side.
-        </p>
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-8 md:px-6 md:py-10">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-semibold tracking-tight">
+            Compare two texts
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Paste anything into both panes, then compare them side by side.
+          </p>
+        </div>
+        <LanguageSelect
+          value={languageId}
+          onChange={setLanguageId}
+          resolvedLanguageId={resolvedLanguageId}
+          align="end"
+        />
       </div>
 
-      <div className="grid flex-1 gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <TextPane
           id="text-1"
           label="Text 1"
           description="Original"
           value={left}
           onChange={setLeft}
+          languageId={resolvedLanguageId}
         />
         <TextPane
           id="text-2"
@@ -56,21 +72,22 @@ function ComparePage() {
           description="Changed"
           value={right}
           onChange={setRight}
+          languageId={resolvedLanguageId}
         />
       </div>
 
-      <div className="flex items-center justify-end gap-3">
+      <div className="flex flex-wrap items-center justify-end gap-3">
         {!canCompare && (
           <span className="text-sm text-muted-foreground">
             Add text to at least one pane.
           </span>
         )}
-        <Button type="submit" disabled={!canCompare}>
+        <Button type="button" disabled={!canCompare} onClick={compare}>
           Compare
           <IconArrowRight data-icon="inline-end" />
         </Button>
       </div>
-    </form>
+    </div>
   );
 }
 
@@ -80,13 +97,21 @@ interface TextPaneProps {
   description: string;
   value: string;
   onChange: (value: string) => void;
+  languageId: string;
 }
 
-function TextPane({ id, label, description, value, onChange }: TextPaneProps) {
+function TextPane({
+  id,
+  label,
+  description,
+  value,
+  onChange,
+  languageId,
+}: TextPaneProps) {
   const lineCount = value.length === 0 ? 0 : value.split('\n').length;
 
   return (
-    <div className="flex min-h-0 flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <div className="flex items-baseline justify-between gap-2">
         <Label htmlFor={id} className="text-sm font-medium">
           {label}
@@ -98,13 +123,12 @@ function TextPane({ id, label, description, value, onChange }: TextPaneProps) {
           {lineCount} {lineCount === 1 ? 'line' : 'lines'}
         </span>
       </div>
-      <Textarea
+      <TextEditor
         id={id}
         value={value}
-        onChange={(event) => onChange(event.target.value)}
-        spellCheck={false}
+        onChange={onChange}
+        languageId={languageId}
         placeholder="Paste text here…"
-        className="min-h-[22rem] flex-1 resize-y font-mono text-[13px] leading-relaxed"
       />
     </div>
   );

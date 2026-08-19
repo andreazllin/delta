@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { useColorMode } from '@/lib/color-mode';
 import { useComparePair } from '@/lib/compare-store';
 import { computeDiff, isDiffError } from '@/lib/compute-diff';
+import { resolveLanguageId } from '@/lib/detect-language';
 import { useDiffSettings } from '@/lib/diff-settings';
 
 export const Route = createFileRoute('/compare')({
@@ -20,15 +21,22 @@ function DiffPage() {
   const settings = useDiffSettings();
   const { themeType } = useColorMode();
 
+  // `'auto'` is the default, so the diff highlights without the user picking a
+  // language; an explicit pick overrides it.
+  const resolvedLanguageId = useMemo(
+    () => resolveLanguageId(settings.languageId, right, left),
+    [settings.languageId, left, right]
+  );
+
   const result = useMemo(
     () =>
       computeDiff({
         left,
         right,
-        languageId: settings.languageId,
+        languageId: resolvedLanguageId,
         collapseUnchanged: settings.collapseUnchanged,
       }),
-    [left, right, settings.collapseUnchanged, settings.languageId]
+    [left, right, resolvedLanguageId, settings.collapseUnchanged]
   );
 
   const isEmpty = left.length === 0 && right.length === 0;
@@ -53,7 +61,10 @@ function DiffPage() {
             />
           )}
         </div>
-        <DiffToolbar settings={settings} />
+        <DiffToolbar
+          settings={settings}
+          resolvedLanguageId={resolvedLanguageId}
+        />
       </div>
 
       <div className="flex flex-col overflow-hidden rounded-lg border bg-card">

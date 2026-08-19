@@ -1,17 +1,18 @@
 import type { DiffIndicators } from '@pierre/diffs';
 import {
-  IconChevronDown,
   IconLayoutColumns,
   IconLayoutRows,
   IconSettings,
   IconTextWrap,
 } from '@tabler/icons-react';
 
+import { LanguageSelect } from '@/components/language-select';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -22,17 +23,17 @@ import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DiffSettings, DiffStyle } from '@/lib/diff-settings';
-import { LANGUAGES } from '@/lib/languages';
 
 interface DiffToolbarProps {
   settings: DiffSettings;
+  /** What `'auto'` resolved to, so the trigger can name the detected language. */
+  resolvedLanguageId: string;
 }
 
-export function DiffToolbar({ settings }: DiffToolbarProps) {
-  const activeLanguage = LANGUAGES.find(
-    (language) => language.id === settings.languageId
-  );
-
+export function DiffToolbar({
+  settings,
+  resolvedLanguageId,
+}: DiffToolbarProps) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <ToggleGroup
@@ -78,29 +79,11 @@ export function DiffToolbar({ settings }: DiffToolbarProps) {
         <TooltipContent>Wrap long lines</TooltipContent>
       </Tooltip>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button variant="outline" size="sm">
-              {activeLanguage?.label ?? 'Plain text'}
-              <IconChevronDown data-icon="inline-end" />
-            </Button>
-          }
-        />
-        <DropdownMenuContent align="start" className="max-h-80 overflow-y-auto">
-          <DropdownMenuLabel>Syntax</DropdownMenuLabel>
-          <DropdownMenuRadioGroup
-            value={settings.languageId}
-            onValueChange={(value: string) => settings.setLanguageId(value)}
-          >
-            {LANGUAGES.map((language) => (
-              <DropdownMenuRadioItem key={language.id} value={language.id}>
-                {language.label}
-              </DropdownMenuRadioItem>
-            ))}
-          </DropdownMenuRadioGroup>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <LanguageSelect
+        value={settings.languageId}
+        onChange={settings.setLanguageId}
+        resolvedLanguageId={resolvedLanguageId}
+      />
 
       <DropdownMenu>
         <DropdownMenuTrigger
@@ -111,33 +94,35 @@ export function DiffToolbar({ settings }: DiffToolbarProps) {
           }
         />
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>Display</DropdownMenuLabel>
-          <DropdownMenuCheckboxItem
-            checked={settings.lineNumbers}
-            onCheckedChange={settings.setLineNumbers}
-          >
-            Line numbers
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem
-            checked={settings.showBackgrounds}
-            onCheckedChange={settings.setShowBackgrounds}
-          >
-            Change backgrounds
-          </DropdownMenuCheckboxItem>
-          <DropdownMenuCheckboxItem
-            checked={settings.collapseUnchanged}
-            onCheckedChange={settings.setCollapseUnchanged}
-          >
-            Collapse unchanged
-          </DropdownMenuCheckboxItem>
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>Display</DropdownMenuLabel>
+            <DropdownMenuCheckboxItem
+              checked={settings.lineNumbers}
+              onCheckedChange={settings.setLineNumbers}
+            >
+              Line numbers
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={settings.showBackgrounds}
+              onCheckedChange={settings.setShowBackgrounds}
+            >
+              Change backgrounds
+            </DropdownMenuCheckboxItem>
+            <DropdownMenuCheckboxItem
+              checked={settings.collapseUnchanged}
+              onCheckedChange={settings.setCollapseUnchanged}
+            >
+              Collapse unchanged
+            </DropdownMenuCheckboxItem>
+          </DropdownMenuGroup>
           <DropdownMenuSeparator />
-          <DropdownMenuLabel>Change indicators</DropdownMenuLabel>
           <DropdownMenuRadioGroup
             value={settings.diffIndicators}
             onValueChange={(value: string) =>
               settings.setDiffIndicators(value as DiffIndicators)
             }
           >
+            <DropdownMenuLabel>Change indicators</DropdownMenuLabel>
             <DropdownMenuRadioItem value="bars">Bars</DropdownMenuRadioItem>
             <DropdownMenuRadioItem value="classic">
               Classic (+/-)

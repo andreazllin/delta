@@ -1,5 +1,12 @@
 import type { ThemeTypes } from '@pierre/diffs';
-import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
 
 import { isOneOf, usePersistedState } from './persisted-state';
 
@@ -14,11 +21,19 @@ interface ColorModeValue {
    * resolves its Shiki theme against the exact scheme the chrome is using.
    */
   themeType: ThemeTypes;
+  /**
+   * `'system'` resolved against the media query. CodeMirror needs a concrete
+   * light or dark theme; it cannot defer to `light-dark()` the way the diff
+   * surface and Tailwind tokens do.
+   */
+  isDark: boolean;
 }
 
 const ColorModeContext = createContext<ColorModeValue | null>(null);
 
 const isColorMode = isOneOf(COLOR_MODES);
+
+const DARK_QUERY = '(prefers-color-scheme: dark)';
 
 export function ColorModeProvider({ children }: { children: ReactNode }) {
   const [colorMode, setColorMode] = usePersistedState<ColorMode>(
@@ -26,25 +41,28 @@ export function ColorModeProvider({ children }: { children: ReactNode }) {
     'system',
     isColorMode
   );
+  const [systemPrefersDark, setSystemPrefersDark] = useState(
+    () => window.matchMedia(DARK_QUERY).matches
+  );
 
   useEffect(() => {
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const apply = () => {
-      const dark =
-        colorMode === 'dark' || (colorMode === 'system' && media.matches);
-      document.documentElement.classList.toggle('dark', dark);
-    };
-    apply();
-    if (colorMode !== 'system') {
-      return;
-    }
-    media.addEventListener('change', apply);
-    return () => media.removeEventListener('change', apply);
-  }, [colorMode]);
+    const media = window.matchMedia(DARK_QUERY);
+    const sync = () => setSystemPrefersDark(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, []);
+
+  const isDark =
+    colorMode === 'dark' || (colorMode === 'system' && systemPrefersDark);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+  }, [isDark]);
 
   const value = useMemo(
-    () => ({ colorMode, setColorMode, themeType: colorMode }),
-    [colorMode, setColorMode]
+    () => ({ colorMode, setColorMode, themeType: colorMode, isDark }),
+    [colorMode, setColorMode, isDark]
   );
 
   return (
